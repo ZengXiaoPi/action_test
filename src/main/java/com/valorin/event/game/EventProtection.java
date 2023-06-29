@@ -3,8 +3,8 @@ package com.valorin.event.game;
 import com.valorin.Main;
 import com.valorin.arenas.Arena;
 import com.valorin.arenas.ArenaManager;
+import com.valorin.util.Debug;
 import com.valorin.util.ViaVersion;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -36,8 +36,13 @@ public class EventProtection implements Listener {
                         e.setCancelled(true);
                     }
                 } else { // 攻击者不是自己的对手，是别人的对手
+                    /*
                     sm("&c[x]请勿干扰他人比赛！", attacker);
                     e.setCancelled(true);
+                     */
+                    if (Main.getInstance().getConfigManager().isDebug()) {
+                        Debug.send("routineProtection：" + attacker.getName() + " " + theOther + " " + bearerName + " " + arenaManager.getArena(arenaManager.getPlayerOfArena(bearerName)).getName() + " " + arenaManager.getArena(arenaManager.getPlayerOfArena(attacker.getName())).getName(), null);
+                    }
                 }
             }
         }
@@ -103,8 +108,12 @@ public class EventProtection implements Listener {
                     }
                 } else { // 说明是观众发射（其实也有可能是自己）
                     if (!shooterPlayer.getName().equals(bearerName)) { // 进一步确认是观众发射而不是自己再取消事件，自己射中自己也算伤害
-                        sm("&c[x]请勿干扰他人比赛！", shooterPlayer);
-                        e.setCancelled(true);
+                        /*sm("&c[x]请勿干扰他人比赛！", shooterPlayer);
+                          e.setCancelled(true);
+                        */
+                        if (Main.getInstance().getConfigManager().isDebug()) {
+                            Debug.send("projectileProtection：" + shooterPlayer.getName() + " " + theOther + " " + bearerName + " " + arenaManager.getArena(arenaManager.getPlayerOfArena(bearerName)).getName() + " " + arenaManager.getArena(arenaManager.getPlayerOfArena(shooterPlayer.getName())).getName(), null);
+                        }
                     }
                 }
             }

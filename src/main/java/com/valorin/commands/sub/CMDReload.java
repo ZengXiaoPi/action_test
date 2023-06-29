@@ -52,7 +52,8 @@ public class CMDReload extends SubCommand implements AdminCommand {
                 Player finalP = player;
                 getInstance().getCacheHandler().load(
                         () -> {
-                            getInstance().getHologramManager().reload();
+                            getInstance().getHologramManager().disable();
+                            getInstance().getHologramManager().enable();
                             SkullManager.reload();
                             SignManager.reload();
                             getInstance().getDanHandler().loadCustomDanFromConfig();

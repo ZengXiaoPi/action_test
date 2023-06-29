@@ -254,7 +254,7 @@ public class Main extends JavaPlugin {
                 FinishGame.compulsoryEnd(editName, null, FinishGame.CompulsoryEndCause.RELOAD_PLUGIN);
             }
         }
-        hologramManager.unload(0);
+        hologramManager.disable();
         languageFileLoader.close();
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             if (me.clip.placeholderapi.PlaceholderAPI

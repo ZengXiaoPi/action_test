@@ -3,422 +3,163 @@ package com.valorin.ranking.hologram;
 import com.valorin.Main;
 import com.valorin.caches.AreaCache;
 import com.valorin.caches.RankingCache;
-import com.valorin.ranking.hologram.type.TypeHolographicDisplays;
-import com.valorin.ranking.hologram.type.TypeTrHologram;
+import com.valorin.configuration.languagefile.MessageBuilder;
+import com.valorin.util.Debug;
 import com.valorin.util.ViaVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import static com.valorin.configuration.languagefile.MessageBuilder.gmLog;
 import static com.valorin.configuration.languagefile.MessageSender.gm;
 
 public class HologramManager {
-    private boolean hasHD = false;
-    private int useHD;// 1-HolographicDisplays 2-TrHologram
-    private boolean isInitialized = false;
+    private boolean hologramPluginExist = false;
+    private HologramPlugin hologramPluginUsed;
+    private boolean isEnabled = false;
     private boolean isNeedRefresh = false;
-    private int refreshTaskId;
+    private final Map<HologramInstance.RankingType, HologramInstance> hologramInstanceMap = new HashMap<>();
 
     public HologramManager() {
-        initialize();
+        enable();
     }
 
-    public boolean isNeedRefresh() {
-        return isNeedRefresh;
+    public void enable() {
+        //检查是否有全息图插件
+        checkHologramPlugin();
+        if (!hologramPluginExist) {
+            return;
+        }
+
+        //加载所有种类的全息图
+        for (HologramInstance.RankingType rankingType : HologramInstance.RankingType.values()) {
+            load(rankingType);
+        }
+
+        //读取配置文件中的自动保存间隔设置，并将秒化为游戏刻，且要确保至少为10秒
+        int interval = Main.getInstance().getConfigManager()
+                .getHologramRefreshInterval();
+        interval = interval < 10 ? 10 * 20 : interval * 20;
+        Bukkit.getScheduler().runTaskTimer(Main.getInstance(), () -> {
+            if (isNeedRefresh) {
+                refresh(true);
+                isNeedRefresh = false;
+            }
+        }, interval, interval);
+
+        //确认初始化完毕
+        isEnabled = true;
+
+        if (Main.getInstance().getConfigManager().isDebug()) {
+            Debug.send("全息插件启动成功，当前使用的为：" + hologramPluginUsed.getRealName(),
+                    "The plugin " + hologramPluginUsed.getRealName() + " for hologram is enabled");
+        }
     }
 
-    public int getRefreshTaskId() {
-        return refreshTaskId;
+    public void disable() {
+        for (HologramInstance.RankingType rankingType : HologramInstance.RankingType.values()) {
+            unload(rankingType);
+        }
     }
 
     public void setIsNeedRefresh(boolean isNeedRefresh) {
         this.isNeedRefresh = isNeedRefresh;
     }
 
-    public void checkHologramPlugin() {
-        String hd = Main.getInstance().getConfigManager()
-                .getHologramPluginUsed();
-        if (hd != null) {
-            switch (hd) {
-                case "HolographicDisplays":
-                    if (Bukkit.getPluginManager().getPlugin("HolographicDisplays") != null) {
-                        if (Bukkit.getPluginManager()
-                                .getPlugin("HolographicDisplays").isEnabled()) {
-                            useHD = 1;
-                            hasHD = true;
-                            break;
-                        }
-                    }
-                case "TrHologram":
-                    if (Bukkit.getPluginManager().getPlugin("TrHologram") != null) {
-                        if (Bukkit.getPluginManager().getPlugin("TrHologram")
-                                .isEnabled()) {
-                            useHD = 2;
-                            hasHD = true;
-                            break;
-                        }
-                    }
-                default:
-                    if (Bukkit.getPluginManager().getPlugin("HolographicDisplays") != null) {
-                        if (Bukkit.getPluginManager()
-                                .getPlugin("HolographicDisplays").isEnabled()) {
-                            useHD = 1;
-                            hasHD = true;
-                            break;
-                        }
-                    }
-                    if (Bukkit.getPluginManager().getPlugin("TrHologram") != null) {
-                        if (Bukkit.getPluginManager().getPlugin("TrHologram")
-                                .isEnabled()) {
-                            useHD = 2;
-                            hasHD = true;
-                            break;
-                        }
-                    }
-            }
-        }
-    }
-
     public void refresh(boolean auto) {
-        unload(0);
-        load(0);
+        for (HologramInstance hologramInstance : hologramInstanceMap.values()) {
+            hologramInstance.refresh(getRefreshContent(hologramInstance.getRankingType()));
+        }
         if (auto) {
             Bukkit.getConsoleSender().sendMessage(gm("&7全息图已自动刷新..."));
         }
     }
 
-    public void initialize() {
-        if (!isInitialized) {
-            checkHologramPlugin();
-            if (!hasHD) {
-                return;
-            }
-
-            int interval = Main.getInstance().getConfigManager()
-                    .getHologramRefreshInterval();
-            if (interval < 10) {
-                interval = 10 * 20;
-            } else {
-                interval = interval * 20;
-            }
-
-            refresh(false);
-
-            new BukkitRunnable() {
-                public void run() {
-                    refreshTaskId = this.getTaskId();
-                    if (isNeedRefresh) {
-                        refresh(true);
-                        isNeedRefresh = false;
-                    }
-                }
-            }.runTaskTimer(Main.getInstance(), interval, interval);
-
-            isInitialized = true;
-        }
+    public Map<HologramInstance.RankingType, HologramInstance> getHologramInstanceMap() {
+        return hologramInstanceMap;
     }
 
-    public void reload() {
-        checkHologramPlugin();
-        if (!hasHD) {
+    public void load(HologramInstance.RankingType rankingType) {
+        AreaCache areaCache = Main.getInstance().getCacheHandler().getArea();
+        Location location;
+        List<String> content = new ArrayList<>();
+        ItemStack itemStack;
+        switch (rankingType) {
+            case WIN:
+                location = areaCache.getWinRankingLocation();
+                content = getRefreshContent(rankingType);
+                itemStack = new ItemStack(ViaVersion.getGoldenSwordMaterial());
+                break;
+            case KD:
+                location = areaCache.getKDRankingLocation();
+                content = getRefreshContent(rankingType);
+                itemStack = new ItemStack(ViaVersion.getGoldenAxeMaterial());
+                break;
+            default:
+                location = null;
+                itemStack = null;
+        }
+        //如果位置为空，说明管理员还没创建这种全息图
+        if (location == null) {
             return;
         }
-        isInitialized = false;
-        initialize();
+        hologramInstanceMap.put(rankingType, new HologramInstance(Main.getInstance(), hologramPluginUsed, location, rankingType, content, itemStack));
     }
 
-    public void load(int n) {
-        Main plugin = Main.getInstance();
-        RankingCache rankingCache = plugin.getCacheHandler().getRanking();
-        AreaCache areaCache = plugin.getCacheHandler().getArea();
-
-        List<String> winList = new ArrayList<>();
-        List<String> winListData = rankingCache.getWin();
-        int max = Math.min(winListData.size(), 10);
-        winList.add(gm("&b[star1]单挑-胜场排行榜[star2]"));
-        for (int i = 0; i < max; i++) {
-            String rankingString = getRankingString(i, winListData, true);
-            if (rankingString != null) {
-                winList.add(rankingString);
-            }
-        }
-        List<String> KDList = new ArrayList<>();
-        List<String> KDListData = rankingCache.getKD();
-        int max2 = Math.min(KDListData.size(), 10);
-        KDList.add(gm("&b[star1]单挑-KD比值排行榜[star2]"));
-        for (int i = 0; i < max2; i++) {
-            String rankingString = getRankingString(i, KDListData, false);
-            if (rankingString != null) {
-                KDList.add(rankingString);
-            }
-        }
-
-        if (!hasHD) {
-            return;
-        }
-        if (n == 0) {
-            if (useHD == 1) {
-                Bukkit.getScheduler()
-                        .runTask(
-                                plugin,
-                                () -> {
-                                    for (com.gmail.filoghost.holographicdisplays.api.Hologram hologram : com.gmail.filoghost.holographicdisplays.api.HologramsAPI
-                                            .getHolograms(plugin)) {
-                                        hologram.clearLines();
-                                    }
-                                });
-            }
-            if (useHD == 2) {
-                if (TypeTrHologram.hologramWin != null) {
-                    TypeTrHologram.hologramWin.destroy();
-                }
-                if (TypeTrHologram.hologramKD != null) {
-                    TypeTrHologram.hologramKD.destroy();
-                }
-            }
-        }
-
-        if (n == 0 || n == 1) {
-            if (useHD == 1) {
-                if (TypeHolographicDisplays.hologramWin != null) {
-                    TypeHolographicDisplays.hologramWin.delete();
-                    TypeHolographicDisplays.hologramWin = null;
-                }
-            }
-            if (useHD == 2) {
-                if (TypeTrHologram.hologramWin != null) {
-                    TypeTrHologram.hologramWin.destroy();
-                    TypeTrHologram.hologramWin = null;
-                }
-            }
-
-            Location winRankingLocation = areaCache.getWinRankingLocation();
-            if (winRankingLocation != null) {
-                if (useHD == 1) { // HolographicDisplays需要同步执行刷新操作
-                    Bukkit.getScheduler()
-                            .runTask(
-                                    plugin,
-                                    () -> {
-                                        TypeHolographicDisplays.hologramWin = com.gmail.filoghost.holographicdisplays.api.HologramsAPI
-                                                .createHologram(plugin,
-                                                        winRankingLocation);
-                                        TypeHolographicDisplays.hologramWin.appendItemLine(new ItemStack(
-                                                ViaVersion
-                                                        .getGoldenSwordMaterial()));
-                                        for (String rankingString : winList) {
-                                            TypeHolographicDisplays.hologramWin
-                                                    .appendTextLine(rankingString);
-                                        }
-                                    });
-                }
-                if (useHD == 2) {
-                    me.arasple.mc.trhologram.api.hologram.HologramBuilder builder = me.arasple.mc.trhologram.api.TrHologramAPI
-                            .builder(winRankingLocation);
-                    builder.append(viewer -> new ItemStack(ViaVersion.getGoldenSwordMaterial()));
-                    for (String winListString : winList) {
-                        builder.append(winListString);
-                    }
-                    TypeTrHologram.hologramWin = builder.build();
-                }
-            }  /*
-             * Bukkit.getConsoleSender().sendMessage(
-             * gm("&c检测到[胜场排行榜]的全息图所在的世界不存在，全息图加载失败，建议将该全息图换个位置"));
-             */
-        }
-        if (n == 0 || n == 2) {
-            if (useHD == 1) {
-                if (TypeHolographicDisplays.hologramKD != null) {
-                    TypeHolographicDisplays.hologramKD.delete();
-                }
-                TypeHolographicDisplays.hologramKD = null;
-            }
-            if (useHD == 2) {
-                if (TypeTrHologram.hologramKD != null) {
-                    TypeTrHologram.hologramKD.destroy();
-                    TypeTrHologram.hologramKD = null;
-                }
-            }
-            Location KDRankingLocation = areaCache.getKDRankingLocation();
-            if (KDRankingLocation != null) {
-                if (useHD == 1) {
-                    Bukkit.getScheduler()
-                            .runTask(
-                                    plugin,
-                                    () -> {
-                                        TypeHolographicDisplays.hologramKD = com.gmail.filoghost.holographicdisplays.api.HologramsAPI
-                                                .createHologram(plugin,
-                                                        KDRankingLocation);
-                                        TypeHolographicDisplays.hologramKD.appendItemLine(new ItemStack(
-                                                ViaVersion
-                                                        .getGoldenAxeMaterial()));
-                                        for (String rankingString : KDList) {
-                                            TypeHolographicDisplays.hologramKD
-                                                    .appendTextLine(rankingString);
-                                        }
-                                    });
-                }
-                if (useHD == 2) {
-                    me.arasple.mc.trhologram.api.hologram.HologramBuilder builder = me.arasple.mc.trhologram.api.TrHologramAPI
-                            .builder(KDRankingLocation);
-                    builder.append(viewer -> new ItemStack(ViaVersion.getGoldenAxeMaterial()));
-                    for (String KDListString : KDList) {
-                        builder.append(KDListString);
-                    }
-                    TypeTrHologram.hologramKD = builder.build();
-                }
-            }  /*
-             * Bukkit.getConsoleSender().sendMessage(
-             * gm("&c检测到[KD排行榜]的全息图所在的世界不存在，全息图加载失败，建议将该全息图换个位置"));
-             */
-        }
-    }
-
-    public void unload(int n) {
-        if (!hasHD) {
-            return;
-        }
-        if (n == 0 || n == 1) {
-            if (Bukkit.getPluginManager().getPlugin("HolographicDisplays") != null) {
-                if (TypeHolographicDisplays.hologramWin != null) {
-                    TypeHolographicDisplays.hologramWin.delete();
-                    TypeHolographicDisplays.hologramWin = null;
-                }
-            }
-            if (Bukkit.getPluginManager().getPlugin("TrHologram") != null) {
-                if (TypeTrHologram.hologramWin != null) {
-                    TypeTrHologram.hologramWin.destroy();
-                    TypeTrHologram.hologramWin = null;
-                }
-            }
-        }
-        if (n == 0 || n == 2) {
-            if (Bukkit.getPluginManager().getPlugin("HolographicDisplays") != null) {
-                if (TypeHolographicDisplays.hologramKD != null) {
-                    TypeHolographicDisplays.hologramKD.delete();
-                    TypeHolographicDisplays.hologramKD = null;
-                }
-            }
-            if (Bukkit.getPluginManager().getPlugin("TrHologram") != null) {
-                if (TypeTrHologram.hologramKD != null) {
-                    TypeTrHologram.hologramKD.destroy();
-                    TypeTrHologram.hologramKD = null;
-                }
-            }
-        }
+    public void unload(HologramInstance.RankingType rankingType) {
+        hologramInstanceMap.get(rankingType).destroy();
+        hologramInstanceMap.remove(rankingType);
     }
 
     public boolean isEnabled() {
-        return hasHD;
+        return isEnabled;
     }
 
-    private String getRankingString(int rank, List<String> dataList,
-                                    boolean isWin) {
-        if (rank + 1 <= dataList.size()) {
-            String playerName = dataList.get(rank).split("\\|")[0];
-            BigDecimal bg = BigDecimal.valueOf(Double.parseDouble(dataList.get(rank)
-                    .split("\\|")[1]));
-            double value = bg.setScale(1, BigDecimal.ROUND_HALF_UP)
-                    .doubleValue();
+    //供初始化和刷新时用
+    private List<String> getRefreshContent(HologramInstance.RankingType rankingType) {
+        List<String> content = new ArrayList<>();
+        RankingCache rankingCache = Main.getInstance().getCacheHandler().getRanking();
 
-            switch (rank) {
-                case 0:
-                    if (isWin)
-                        return gmLog("&b&l[n1] &f{player} &7[right] &a{value}场",
-                                null, "player value", new String[]{playerName,
-                                        "" + (int) value}, false, true);
-                    else
-                        return gmLog("&b&l[n1] &f{player} &7[right] &a{value}",
-                                null, "player value", new String[]{playerName,
-                                        "" + value}, false, true);
-                case 1:
-                    if (isWin)
-                        return gmLog("&e&l[n2] &f{player} &7[right] &a{value}场",
-                                null, "player value", new String[]{playerName,
-                                        "" + (int) value}, false, true);
-                    else
-                        return gmLog("&e&l[n2] &f{player} &7[right] &a{value}",
-                                null, "player value", new String[]{playerName,
-                                        "" + value}, false, true);
-                case 2:
-                    if (isWin)
-                        return gmLog("&6&l[n3] &f{player} &7[right] &a{value}场",
-                                null, "player value", new String[]{playerName,
-                                        "" + (int) value}, false, true);
-                    else
-                        return gmLog("&6&l[n3] &f{player} &7[right] &a{value}",
-                                null, "player value", new String[]{playerName,
-                                        "" + value}, false, true);
-                case 3:
-                    if (isWin)
-                        return gmLog("&b[n4] &f{player} &7[right] &a{value}场",
-                                null, "player value", new String[]{playerName,
-                                        "" + (int) value}, false, true);
-                    else
-                        return gmLog("&b[n4] &f{player} &7[right] &a{value}", null,
-                                "player value", new String[]{playerName,
-                                        "" + value}, false, true);
-                case 4:
-                    if (isWin)
-                        return gmLog("&b[n5] &f{player} &7[right] &a{value}场",
-                                null, "player value", new String[]{playerName,
-                                        "" + (int) value}, false, true);
-                    else
-                        return gmLog("&b[n5] &f{player} &7[right] &a{value}", null,
-                                "player value", new String[]{playerName,
-                                        "" + value}, false, true);
-                case 5:
-                    if (isWin)
-                        return gmLog("&b[n6] &f{player} &7[right] &a{value}场",
-                                null, "player value", new String[]{playerName,
-                                        "" + (int) value}, false, true);
-                    else
-                        return gmLog("&b[n6] &f{player} &7[right] &a{value}", null,
-                                "player value", new String[]{playerName,
-                                        "" + value}, false, true);
-                case 6:
-                    if (isWin)
-                        return gmLog("&b[n7] &f{player} &7[right] &a{value}场",
-                                null, "player value", new String[]{playerName,
-                                        "" + (int) value}, false, true);
-                    else
-                        return gmLog("&b[n7] &f{player} &7[right] &a{value}", null,
-                                "player value", new String[]{playerName,
-                                        "" + value}, false, true);
-                case 7:
-                    if (isWin)
-                        return gmLog("&b[n8] &f{player} &7[right] &a{value}场",
-                                null, "player value", new String[]{playerName,
-                                        "" + (int) value}, false, true);
-                    else
-                        return gmLog("&b[n8] &f{player} &7[right] &a{value}", null,
-                                "player value", new String[]{playerName,
-                                        "" + value}, false, true);
-                case 8:
-                    if (isWin)
-                        return gmLog("&b[n9] &f{player} &7[right] &a{value}场",
-                                null, "player value", new String[]{playerName,
-                                        "" + (int) value}, false, true);
-                    else
-                        return gmLog("&b[n9] &f{player} &7[right] &a{value}", null,
-                                "player value", new String[]{playerName,
-                                        "" + value}, false, true);
-                case 9:
-                    if (isWin)
-                        return gmLog("&b[n10] &f{player} &7[right] &a{value}场",
-                                null, "player value", new String[]{playerName,
-                                        "" + (int) value}, false, true);
-                    else
-                        return gmLog("&b[n10] &f{player} &7[right] &a{value}",
-                                null, "player value", new String[]{playerName,
-                                        "" + value}, false, true);
+        switch (rankingType) {
+            case WIN:
+                content.add(gm("&b[star1]单挑-胜场排行榜[star2]"));
+                content.addAll(IntStream.range(0, Math.min(rankingCache.getWin().size(), 10))
+                        .mapToObj(i -> MessageBuilder.getRankingString(i, rankingCache.getWin(), true))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()));
+                break;
+            case KD:
+                content.add(gm("&b[star1]单挑-KD比值排行榜[star2]"));
+                content.addAll(IntStream.range(0, Math.min(rankingCache.getKD().size(), 10))
+                        .mapToObj(i -> MessageBuilder.getRankingString(i, rankingCache.getKD(), true))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()));
+                break;
+        }
+        return content;
+    }
+
+    //检查全息插件
+    private void checkHologramPlugin() {
+        String hologramPluginNameInConfig = Main.getInstance().getConfigManager().getHologramPluginUsed();
+        List<HologramPlugin> hologramPluginInstalledList = new ArrayList<>();
+        for (HologramPlugin hologramPlugin : HologramPlugin.values()) {
+            if (Bukkit.getPluginManager().getPlugin(hologramPluginNameInConfig) == null) {
+                continue;
+            }
+            hologramPluginInstalledList.add(hologramPlugin);
+            if (hologramPlugin.getRealName().equals(hologramPluginNameInConfig)) {
+                hologramPluginUsed = hologramPlugin;
+                hologramPluginExist = true;
             }
         }
-        return null;
+        //如果遍历一轮过后没有找到配置文件中所填写的全息插件，那就找其他已安装的全息图插件
+        if (!hologramPluginExist && hologramPluginInstalledList.size() > 0) {
+            hologramPluginUsed = hologramPluginInstalledList.get(0);
+            hologramPluginExist = true;
+        }
     }
 }

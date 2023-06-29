@@ -3,6 +3,7 @@ package com.valorin.configuration.languagefile;
 import static com.valorin.Main.getInstance;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -119,5 +120,91 @@ public class MessageBuilder {
 		} else {
 			return Chinese+"§8Error:This message hasn't registered!(消息未注册，可能是编码问题，请联系腐竹建议TA为语言文件转码)";
 		}
+	}
+
+
+	public static String getRankingString(int rank, List<String> dataList,
+									boolean isWin) {
+		if (rank + 1 <= dataList.size()) {
+			String playerName = dataList.get(rank).split("\\|")[0];
+			BigDecimal bg = BigDecimal.valueOf(Double.parseDouble(dataList.get(rank)
+					.split("\\|")[1]));
+			double value = bg.setScale(1, BigDecimal.ROUND_HALF_UP)
+					.doubleValue();
+
+			switch (rank) {
+				case 0:
+					return isWin ? gmLog("&b&l[n1] &f{player} &7[right] &a{value}场",
+							null, "player value", new String[]{playerName,
+									"" + (int) value}, false, true)
+							: gmLog("&b&l[n1] &f{player} &7[right] &a{value}",
+							null, "player value", new String[]{playerName,
+									"" + value}, false, true);
+				case 1:
+					return isWin ? gmLog("&e&l[n2] &f{player} &7[right] &a{value}场",
+							null, "player value", new String[]{playerName,
+									"" + (int) value}, false, true)
+							: gmLog("&e&l[n2] &f{player} &7[right] &a{value}",
+							null, "player value", new String[]{playerName,
+									"" + value}, false, true);
+				case 2:
+					return isWin ? gmLog("&6&l[n3] &f{player} &7[right] &a{value}场",
+							null, "player value", new String[]{playerName,
+									"" + (int) value}, false, true)
+							: gmLog("&6&l[n3] &f{player} &7[right] &a{value}",
+							null, "player value", new String[]{playerName,
+									"" + value}, false, true);
+				case 3:
+					return isWin ? gmLog("&b[n4] &f{player} &7[right] &a{value}场",
+							null, "player value", new String[]{playerName,
+									"" + (int) value}, false, true)
+							: gmLog("&b[n4] &f{player} &7[right] &a{value}", null,
+							"player value", new String[]{playerName,
+									"" + value}, false, true);
+				case 4:
+					return isWin ? gmLog("&b[n5] &f{player} &7[right] &a{value}场",
+							null, "player value", new String[]{playerName,
+									"" + (int) value}, false, true)
+							: gmLog("&b[n5] &f{player} &7[right] &a{value}", null,
+							"player value", new String[]{playerName,
+									"" + value}, false, true);
+				case 5:
+					return isWin ? gmLog("&b[n6] &f{player} &7[right] &a{value}场",
+							null, "player value", new String[]{playerName,
+									"" + (int) value}, false, true)
+							: gmLog("&b[n6] &f{player} &7[right] &a{value}", null,
+							"player value", new String[]{playerName,
+									"" + value}, false, true);
+				case 6:
+					return isWin ? gmLog("&b[n7] &f{player} &7[right] &a{value}场",
+							null, "player value", new String[]{playerName,
+									"" + (int) value}, false, true)
+							: gmLog("&b[n7] &f{player} &7[right] &a{value}", null,
+							"player value", new String[]{playerName,
+									"" + value}, false, true);
+				case 7:
+					return isWin ? gmLog("&b[n8] &f{player} &7[right] &a{value}场",
+							null, "player value", new String[]{playerName,
+									"" + (int) value}, false, true)
+							: gmLog("&b[n8] &f{player} &7[right] &a{value}", null,
+							"player value", new String[]{playerName,
+									"" + value}, false, true);
+				case 8:
+					return isWin ? gmLog("&b[n9] &f{player} &7[right] &a{value}场",
+							null, "player value", new String[]{playerName,
+									"" + (int) value}, false, true)
+							: gmLog("&b[n9] &f{player} &7[right] &a{value}", null,
+							"player value", new String[]{playerName,
+									"" + value}, false, true);
+				case 9:
+					return isWin ? gmLog("&b[n10] &f{player} &7[right] &a{value}场",
+							null, "player value", new String[]{playerName,
+									"" + (int) value}, false, true)
+							: gmLog("&b[n10] &f{player} &7[right] &a{value}",
+							null, "player value", new String[]{playerName,
+									"" + value}, false, true);
+			}
+		}
+		return null;
 	}
 }

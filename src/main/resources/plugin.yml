@@ -3,9 +3,9 @@ main: com.valorin.Main
 version: ${project.version}
 author: Valorin
 api-version: 1.13
-softdepend: [HolographicDisplays, PlaceholderAPI, TrHologram]
+softdepend: [ HolographicDisplays, PlaceholderAPI, TrHologram, CMI ]
 commands:
   dantiao:
     description: 查看单挑插件帮助
     usage: /<command>
-    aliases: [dt]
+    aliases: [ dt ]

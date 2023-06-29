@@ -6,7 +6,7 @@
 
     <groupId>com.valorin</groupId>
     <artifactId>Dantiao</artifactId>
-    <version>EX-38</version>
+    <version>EX-39</version>
 
 
     <name>Dantiao</name>
@@ -74,6 +74,10 @@
             <id>placeholderapi</id>
             <url>http://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -91,19 +95,19 @@
             <systemPath>${project.basedir}/lib/PlaceholderAPI-2.10.9.jar</systemPath>
         </dependency>
         <dependency>
-            <groupId>hologram</groupId>
-            <artifactId>hologram</artifactId>
+            <groupId>com.gmail.filoghos</groupId>
+            <artifactId>HolographicDisplays</artifactId>
             <version>2.4.9</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/HolographicDisplays-2.4.9.jar</systemPath>
         </dependency>
         <dependency>
-        <groupId>mail</groupId>
-        <artifactId>mail</artifactId>
-        <version>3.1.0</version>
-        <scope>system</scope>
-        <systemPath>${project.basedir}/lib/MailBox-3.1.0.jar</systemPath>
-    </dependency>
+            <groupId>mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>3.1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/MailBox-3.1.0.jar</systemPath>
+        </dependency>
         <!--<dependency>
             <groupId>mail</groupId>
             <artifactId>mail</artifactId>
@@ -112,11 +116,31 @@
             <systemPath>${project.basedir}/lib/MailBox-v2.4.3.jar</systemPath>
         </dependency>-->
         <dependency>
+            <groupId>net.zrips</groupId>
+            <artifactId>CMI</artifactId>
+            <version>9.0.0.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/CMI9.0.0.0API.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>net.zrips</groupId>
+            <artifactId>CMILibs</artifactId>
+            <version>1.3.0.3</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/CMILib1.3.0.3.jar</systemPath>
+        </dependency>
+        <dependency>
             <groupId>trhd</groupId>
             <artifactId>trhd</artifactId>
             <version>2.2</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/TrHologram-2.2.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.github.decentsoftware-eu</groupId>
+            <artifactId>decentholograms</artifactId>
+            <version>2.8.3</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

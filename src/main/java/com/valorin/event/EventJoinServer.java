@@ -19,6 +19,8 @@ public class EventJoinServer implements Listener {
         cacheHandler.getPoint().load(name);
         cacheHandler.getRecord().load(name, null);
         //首次有玩家进入，初始化全息图
-        getInstance().getHologramManager().initialize();
+        if (!getInstance().getHologramManager().isEnabled()) {
+            getInstance().getHologramManager().enable();
+        }
     }
 }
