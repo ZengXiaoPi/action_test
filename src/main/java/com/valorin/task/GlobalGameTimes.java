@@ -36,7 +36,10 @@ public class GlobalGameTimes extends BukkitRunnable {
             JsonArray jsonArray = new JsonParser().parse(json).getAsJsonArray();
             int times = 0;
             for (JsonElement jsonElement : jsonArray) {
-                times = times + ((JsonArray) jsonElement).get(1).getAsInt();
+                int data = ((JsonArray) jsonElement).get(1).getAsInt();
+                //1000以上的视为虚假数据
+                data = data > 1000 ? 0 : data;
+                times += data;
             }
             this.times = times;
         } catch (Exception ignored) {

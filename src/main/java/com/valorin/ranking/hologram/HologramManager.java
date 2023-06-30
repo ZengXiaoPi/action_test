@@ -60,7 +60,7 @@ public class HologramManager {
     }
 
     public void disable() {
-        for (HologramInstance.RankingType rankingType : HologramInstance.RankingType.values()) {
+        for (HologramInstance.RankingType rankingType : new HashSet<>(hologramInstanceMap.keySet())) {
             unload(rankingType);
         }
     }
