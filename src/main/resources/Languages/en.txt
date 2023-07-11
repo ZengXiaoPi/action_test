@@ -543,3 +543,6 @@ No player
 &aStopped the game in arena &2{editname} &abecause of reloading
 &b&lThe game stopped due to the reloading of configuration and it will not be recorded in your game record panel.
 &b&lThe game stopped due to the disabling of plugin and it will not be recorded in your game record panel.
+&b/dt test reloadcache <Function> &f- &aReload the cache of a function
+&7Usage: /dt test reloadcache <Function>
+&c[x]Please enter the valid name of a function

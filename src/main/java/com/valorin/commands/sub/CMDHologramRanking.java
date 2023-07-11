@@ -64,6 +64,12 @@ public class CMDHologramRanking extends SubCommand implements AdminCommand {
             HologramInstance.RankingType rankingType = args[1].equalsIgnoreCase("win") ? HologramInstance.RankingType.WIN : HologramInstance.RankingType.KD;
             //有则移动，无则创建
             if (hologramManager.getHologramInstanceMap().containsKey(rankingType)) {
+                if (rankingType == HologramInstance.RankingType.WIN) {
+                    Main.getInstance().getCacheHandler().getArea().setWinRanking(location);
+                }
+                if (rankingType == HologramInstance.RankingType.KD) {
+                    Main.getInstance().getCacheHandler().getArea().setKDRanking(location);
+                }
                 hologramManager.getHologramInstanceMap().get(rankingType).refresh(location);
                 sm("&b移动全息图...", player);
             } else {

@@ -1,5 +1,7 @@
 package com.valorin.commands.sub;
 
+import com.valorin.Main;
+import com.valorin.caches.CacheHandler;
 import com.valorin.commands.SubCommand;
 import com.valorin.commands.way.AdminCommand;
 import com.valorin.util.ViaVersion;
@@ -21,6 +23,7 @@ public class CMDTest extends SubCommand implements AdminCommand {
         sm("", p);
         sm("&3&lDan&b&l&oTiao &f&l>> &a管理员帮助：测试操作", p, false);
         sm("&b/dt test itemtype &f- &a查看手上物品种类的英文名", p, false);
+        sm("&b/dt test reloadcache <模块名> &f- &a重载某个模块的缓存数据", p, false);
         sm("", p);
     }
 
@@ -43,6 +46,22 @@ public class CMDTest extends SubCommand implements AdminCommand {
             ItemStack itemStack = ViaVersion.getItemInMainHand(player);
             String type = itemStack != null ? itemStack.getType().name() : Material.AIR.name();
             sm("&b物品英文名：&f{name}", player, "name", new String[]{type});
+            return true;
+        }
+        if (args[1].equalsIgnoreCase("reloadcache")) {
+            if (args.length != 3) {
+                sm("&7正确格式：/dt test reloadcache <模块名>", player);
+                return true;
+            }
+            String cacheTypeEnter = args[2].toUpperCase();
+            CacheHandler.CacheType cacheType;
+            try {
+                cacheType = CacheHandler.CacheType.valueOf(cacheTypeEnter);
+            } catch (IllegalArgumentException e) {
+                sm("&c[x]请输入正确的模块名！", player);
+                return true;
+            }
+            Main.getInstance().getCacheHandler().reloadCache(cacheType);
             return true;
         }
         sendHelp(player);

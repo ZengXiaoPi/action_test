@@ -134,7 +134,7 @@ public class HologramManager {
             case KD:
                 content.add(gm("&b[star1]单挑-KD比值排行榜[star2]"));
                 content.addAll(IntStream.range(0, Math.min(rankingCache.getKD().size(), 10))
-                        .mapToObj(i -> MessageBuilder.getRankingString(i, rankingCache.getKD(), true))
+                        .mapToObj(i -> MessageBuilder.getRankingString(i, rankingCache.getKD(), false))
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList()));
                 break;
@@ -147,13 +147,14 @@ public class HologramManager {
         String hologramPluginNameInConfig = Main.getInstance().getConfigManager().getHologramPluginUsed();
         List<HologramPlugin> hologramPluginInstalledList = new ArrayList<>();
         for (HologramPlugin hologramPlugin : HologramPlugin.values()) {
-            if (Bukkit.getPluginManager().getPlugin(hologramPluginNameInConfig) == null) {
+            if (Bukkit.getPluginManager().getPlugin(hologramPlugin.getRealName()) == null) {
                 continue;
             }
             hologramPluginInstalledList.add(hologramPlugin);
             if (hologramPlugin.getRealName().equals(hologramPluginNameInConfig)) {
                 hologramPluginUsed = hologramPlugin;
                 hologramPluginExist = true;
+                break;
             }
         }
         //如果遍历一轮过后没有找到配置文件中所填写的全息插件，那就找其他已安装的全息图插件

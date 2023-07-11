@@ -49,7 +49,7 @@ public class CMDReload extends SubCommand implements AdminCommand {
                 getInstance().getMySQL().close();
                 getInstance().getMySQL().connect();
                 getInstance().getCacheHandler().unload();
-                Player finalP = player;
+                Player finalPlayer = player;
                 getInstance().getCacheHandler().load(
                         () -> {
                             getInstance().getHologramManager().disable();
@@ -59,7 +59,7 @@ public class CMDReload extends SubCommand implements AdminCommand {
                             getInstance().getDanHandler().loadCustomDanFromConfig();
                             getInstance().reloadTimeTable();
                             long end = System.currentTimeMillis();
-                            sm("&a[v]config.yml:重载完毕！耗时&d{ms}毫秒", finalP, "ms",
+                            sm("&a[v]config.yml:重载完毕！耗时&d{ms}毫秒", finalPlayer, "ms",
                                     new String[]{"" + (end - start)});
                         });
             } catch (Exception e) {

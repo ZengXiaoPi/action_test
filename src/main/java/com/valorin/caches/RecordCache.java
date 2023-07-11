@@ -25,6 +25,7 @@ public class RecordCache {
 
     public RecordCache() {
         try {
+            //对在线玩家进行缓存载入操作（仅用于热重载）
             for (Player player : ViaVersion.getOnlinePlayers()) {
                 load(player.getName(), null);
             }
@@ -83,27 +84,15 @@ public class RecordCache {
     }
 
     public int getWins(String name) {
-        try {
-            return winsMap.get(name);
-        } catch (Exception e) {
-            return 0;
-        }
+        return winsMap.getOrDefault(name, 0);
     }
 
     public int getLoses(String name) {
-        try {
-            return losesMap.get(name);
-        } catch (Exception e) {
-            return 0;
-        }
+        return losesMap.getOrDefault(name, 0);
     }
 
     public int getDraws(String name) {
-        try {
-            return drawsMap.get(name);
-        } catch (Exception e) {
-            return 0;
-        }
+        return drawsMap.getOrDefault(name, 0);
     }
 
     public int getGameTimes(String name) {
@@ -115,19 +104,11 @@ public class RecordCache {
     }
 
     public int getWinningStreakTimes(String name) {
-        try {
-            return winningStreakTimesMap.get(name);
-        } catch (Exception e) {
-            return 0;
-        }
+        return winningStreakTimesMap.getOrDefault(name, 0);
     }
 
     public int getMaxWinningStreakTimes(String name) {
-        try {
-            return maxWinningStreakTimesMap.get(name);
-        } catch (Exception e) {
-            return 0;
-        }
+        return maxWinningStreakTimesMap.getOrDefault(name, 0);
     }
 
     public Record getLast(String name) {
@@ -143,31 +124,31 @@ public class RecordCache {
     }
 
     public void addWins(String name) {
-        int value = winsMap.get(name) + 1;
+        int value = getWins(name) + 1;
         winsMap.put(name, value);
         Data.setWins(name, value);
     }
 
     public void addLoses(String name) {
-        int value = losesMap.get(name) + 1;
+        int value = getLoses(name) + 1;
         losesMap.put(name, value);
         Data.setLoses(name, value);
     }
 
     public void addDraws(String name) {
-        int value = drawsMap.get(name) + 1;
+        int value = getDraws(name) + 1;
         drawsMap.put(name, value);
         Data.setDraws(name, value);
     }
 
     public void addWinningStreakTimes(String name) {
-        int value = winningStreakTimesMap.get(name) + 1;
+        int value = getWinningStreakTimes(name) + 1;
         winningStreakTimesMap.put(name, value);
         Data.setWinningStreakTimes(name, value);
     }
 
     public void addMaxWinningStreakTimes(String name) {
-        int value = maxWinningStreakTimesMap.get(name) + 1;
+        int value = getMaxWinningStreakTimes(name) + 1;
         maxWinningStreakTimesMap.put(name, value);
         Data.setMaxWinningStreakTimes(name, value);
     }

@@ -1,6 +1,7 @@
 package com.valorin.caches;
 
 import com.valorin.Main;
+import com.valorin.dan.DanHandler;
 import com.valorin.data.Data;
 import com.valorin.util.Debug;
 import com.valorin.util.ViaVersion;
@@ -47,6 +48,10 @@ public class DanCache {
                     () -> {
                         int exp = Data.getDanExp(name);
                         map.put(name, exp);
+                        DanHandler danHandler = Main.getInstance().getDanHandler();
+                        if (danHandler != null) {
+                            danHandler.refreshPlayerDan(name);
+                        }
                     });
         }
     }

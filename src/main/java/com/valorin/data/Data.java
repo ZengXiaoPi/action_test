@@ -790,6 +790,7 @@ public class Data {
                         getInstance().getMySQL().setWins(name, value);
                     } else {
                         records.set(name + ".Win", value);
+                        saveRecords();
                     }
                 }
             }
@@ -805,6 +806,7 @@ public class Data {
                         getInstance().getMySQL().setLoses(name, value);
                     } else {
                         records.set(name + ".Lose", value);
+                        saveRecords();
                     }
                 }
             }
@@ -820,6 +822,7 @@ public class Data {
                         getInstance().getMySQL().setDraws(name, value);
                     } else {
                         records.set(name + ".Draw", value);
+                        saveRecords();
                     }
                 }
             }
@@ -835,6 +838,7 @@ public class Data {
                         getInstance().getMySQL().setWinningStreakTimes(name, value);
                     } else {
                         records.set(name + ".Winning-Streak-Times", value);
+                        saveRecords();
                     }
                 }
             }
@@ -851,6 +855,7 @@ public class Data {
                                 value);
                     } else {
                         records.set(name + ".Max-Winning-Streak-Times", value);
+                        saveRecords();
                     }
                 }
             }

@@ -96,7 +96,7 @@ public class CommandExecutor implements TabExecutor {
 				}
 				return Arrays
 						.stream(playerList.toArray(new String[0]))
-						.filter(s -> s.startsWith(args[1]))
+						.filter(s -> s.contains(args[1]))
 						.collect(Collectors.toList());
 			}
 

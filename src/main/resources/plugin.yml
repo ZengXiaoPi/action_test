@@ -3,7 +3,7 @@ main: com.valorin.Main
 version: ${project.version}
 author: Valorin
 api-version: 1.13
-softdepend: [ HolographicDisplays, PlaceholderAPI, TrHologram, CMI ]
+softdepend: [ HolographicDisplays, PlaceholderAPI, TrHologram, CMI, DecentHolograms ]
 commands:
   dantiao:
     description: 查看单挑插件帮助

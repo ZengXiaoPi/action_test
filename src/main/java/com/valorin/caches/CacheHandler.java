@@ -116,7 +116,48 @@ public class CacheHandler {
         return shopCache;
     }
 
+    public void reloadCache(CacheType cacheType) {
+        Debug.send("开始重载缓存模块：" + cacheType, "Reloading the cache " + cacheType);
+        switch (cacheType) {
+            case AREA:
+                areaCache = new AreaCache();
+                break;
+            case ARENA_INFO:
+                arenaInfoCache = new ArenaInfoCache();
+                break;
+            case BLACKLIST:
+                blacklistCache = new BlacklistCache();
+                break;
+            case DAN:
+                danCache = new DanCache();
+                break;
+            case ENERGY:
+                unload();
+                energyCache = new EnergyCache();
+                break;
+            case LANGUAGE_FILE:
+                languageFileCache = new LanguageFileCache();
+                break;
+            case POINT:
+                pointCache = new PointCache();
+                break;
+            case RANKING:
+                rankingCache = new RankingCache();
+                break;
+            case RECORD:
+                recordCache = new RecordCache();
+                break;
+            case SHOP:
+                shopCache = new ShopCache();
+                break;
+        }
+    }
+
     public interface Action {
         void run();
+    }
+
+    public enum CacheType {
+        AREA, ARENA_INFO, BLACKLIST, DAN, ENERGY, LANGUAGE_FILE, POINT, RANKING, RECORD, SHOP
     }
 }

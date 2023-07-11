@@ -55,17 +55,23 @@ public class DanHandler {
         playerDans.put(playerName, playerDan);
     }
 
+    public void refreshAllPlayerDan() {
+        for (String playerName : Main.getInstance().getCacheHandler().getDan().keySet()) {
+            refreshPlayerDan(playerName);
+        }
+    }
+
     public CustomDan getDanByExp(int exp) {
-        CustomDan dan = null;
+        CustomDan playerDan = null;
         if (exp >= threshold) {
             for (CustomDan customDan : customDans) {
                 if (exp < customDan.getExp()) {
                     break;
                 }
-                dan = customDan;
+                playerDan = customDan;
             }
         }
-        return dan;
+        return playerDan;
     }
 
     public int getNeedExpToLevelUp(String playerName) {
@@ -177,9 +183,7 @@ public class DanHandler {
             this.threshold = customDans.get(0).getExp();
         }
         if (this.customDans.size() != 0) {
-            for (String playerName : Main.getInstance().getCacheHandler().getDan().keySet()) {
-                refreshPlayerDan(playerName);
-            }
+            refreshAllPlayerDan();
         }
     }
 }
