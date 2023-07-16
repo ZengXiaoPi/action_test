@@ -1,0 +1,35 @@
+name: Java CI with Maven
+
+# 检测到 src 文件内 .java 文件有变动执行编译
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+#	配置权限
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+# 下载代码
+    - uses: actions/checkout@v3
+    - name: Set up JDK 17
+# 安装 JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+# 配置 settings.xml 一般用于 Mavne 私库验证等
+    - name: maven-settings-xml-action
+      uses: whelk-io/maven-settings-xml-action@v20
+      with:
+        repositories: ''
+        servers: ''
+# Maven 打包 
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+    - name: Upload Full
+      uses: actions/upload-artifact@v3
+      with:
+        name: artifact
+        path: target/*
